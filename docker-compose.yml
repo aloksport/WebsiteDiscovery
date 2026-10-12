@@ -1,0 +1,73 @@
+# Local development stack: PostgreSQL + the backend (hot-reloading via
+# ts-node-dev) + the admin panel (hot-reloading via the Vite dev server).
+#
+# The credentials below are for a throwaway local database only — fine to
+# leave as-is on your own machine. Do NOT reuse them on a real server; see
+# docker-compose.prod.yml and docs/SETUP_WEBSERVER.md for that.
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: questionnaire1
+      POSTGRES_USER: questionnaire_user
+      POSTGRES_PASSWORD: local_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U questionnaire_user -d  questionnaire1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: questionnaire_user
+      DB_PASSWORD: local_dev_password
+      DB_NAME: questionnaire1
+      BASE_PATH: /websitediscovery
+      # Local dev only - fine to leave as-is here. Use a real random secret
+      # in production (see .env.example / docker-compose.prod.yml).
+      JWT_SECRET: local_dev_jwt_secret_change_me
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend/src:/app/src
+      - ./backend/migrations:/app/migrations
+      - ./backend/seeds:/app/seeds
+      - ./backend/public-frontend:/app/public-frontend
+      - ./backend/knexfile.js:/app/knexfile.js
+
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile.dev
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_API_PROXY_TARGET: http://backend:4000
+      VITE_BASE_PATH: /websitediscovery
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./admin/src:/app/src
+      - ./admin/index.html:/app/index.html
+      - ./admin/vite.config.ts:/app/vite.config.ts
+
+volumes:
+  db_data:

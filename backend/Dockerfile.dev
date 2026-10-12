@@ -1,0 +1,16 @@
+# Development image for the backend: installs all dependencies (including
+# ts-node-dev) and runs the TypeScript source directly with hot reload.
+# docker-compose.yml mounts backend/src (etc.) over this at runtime, so
+# code edits on your machine are picked up immediately.
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . .
+
+EXPOSE 4000
+
+CMD ["npm", "run", "dev"]

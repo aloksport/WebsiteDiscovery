@@ -1,0 +1,21 @@
+{
+  "name": "questionnaire-website",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Root helper scripts for the questionnaire admin (backend) and admin panel (admin) sub-projects",
+  "scripts": {
+    "install:all": "npm install --prefix backend && npm install --prefix admin",
+    "migrate": "npm run migrate --prefix backend",
+    "migrate:rollback": "npm run migrate:rollback --prefix backend",
+    "seed": "npm run seed --prefix backend",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:admin": "npm run dev --prefix admin",
+    "dev": "concurrently -n backend,admin -c blue,green \"npm:dev:backend\" \"npm:dev:admin\"",
+    "build:admin": "npm run build --prefix admin",
+    "build": "npm run build:admin && npm run build --prefix backend",
+    "start": "npm run start --prefix backend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

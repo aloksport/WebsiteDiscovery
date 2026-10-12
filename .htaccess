@@ -1,0 +1,12 @@
+# Live server: this folder (/home/adminroot/public_html/websitediscovery) is
+# what Apache serves at https://sed-abeo.com/websitediscovery/. Every request
+# under it is forwarded to the nginx container (docker-compose.prod.yml,
+# bound to 127.0.0.1:8070), which passes it to the app container:
+#   /websitediscovery/admin/          -> admin panel
+#   /websitediscovery/<client-slug>   -> a client's questionnaire (e.g. /abeo)
+#   /websitediscovery/api/...         -> the API
+# Requires Apache's mod_rewrite + mod_proxy + mod_proxy_http.
+RewriteEngine On
+RewriteBase /websitediscovery/
+
+RewriteRule ^(.*)$ http://127.0.0.1:8070/websitediscovery/$1 [P,L]
